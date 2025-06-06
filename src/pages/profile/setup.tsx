@@ -107,7 +107,7 @@ const ProfileSetupPage: React.FC = () => {
     }, 1500);
   };
 
-  return (
+    return (
     <DashboardLayout pageTitle="Complete Your Profile Setup">
       <div className="max-w-4xl mx-auto">
         {/* Progress Header */}
@@ -115,14 +115,14 @@ const ProfileSetupPage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Profile Completion</h2>
             <span className="text-2xl font-bold text-amber-600">{progress}%</span>
-          </div>
+        </div>
           
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
             <div 
               className="bg-amber-500 h-3 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
-          </div>
+      </div>
           
           <p className="text-gray-600">
             {progress < 100 
@@ -196,8 +196,8 @@ const ProfileSetupPage: React.FC = () => {
                     <option value="America/Denver">Mountain Time (MST/MDT)</option>
                     <option value="America/Los_Angeles">Pacific Time (PST/PDT)</option>
                   </select>
-                </div>
-              </div>
+        </div>
+      </div>
             </Card>
 
             {/* Legacy Settings */}
@@ -224,8 +224,8 @@ const ProfileSetupPage: React.FC = () => {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Digital will functionality coming soon
-                  </p>
-                </div>
+            </p>
+          </div>
 
                 <div>
                   <label htmlFor="defaultRelease" className="block text-sm font-medium text-gray-700 mb-1">
@@ -298,8 +298,8 @@ const ProfileSetupPage: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
+            </div>
+          )}
 
             {/* Add New Contact */}
             <div className="border-t border-gray-200 pt-6">
@@ -344,8 +344,8 @@ const ProfileSetupPage: React.FC = () => {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-              </div>
-              
+            </div>
+
               <Button
                 type="button"
                 onClick={addContact}
@@ -365,7 +365,7 @@ const ProfileSetupPage: React.FC = () => {
               <Bell className="w-5 h-5 text-amber-600" />
               <h3 className="text-lg font-semibold text-gray-900">Security & Notifications</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Security */}
               <div>
@@ -398,7 +398,7 @@ const ProfileSetupPage: React.FC = () => {
                     </div>
                   </label>
                 </div>
-              </div>
+            </div>
 
               {/* Notifications */}
               <div>
@@ -419,7 +419,7 @@ const ProfileSetupPage: React.FC = () => {
                       <p className="text-xs text-gray-500">
                         Get notified when scheduled memories become available
                       </p>
-                    </div>
+            </div>
                   </label>
                   
                   <label className="flex items-start space-x-3">
@@ -437,7 +437,7 @@ const ProfileSetupPage: React.FC = () => {
                       <p className="text-xs text-gray-500">
                         Stay updated on shared content
                       </p>
-                    </div>
+                  </div>
                   </label>
                   
                   <label className="flex items-start space-x-3">

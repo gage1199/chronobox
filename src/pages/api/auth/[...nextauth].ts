@@ -19,16 +19,6 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // 🎯 TEMPORARY DEMO USER (REMOVE AFTER TESTING)
-        if (credentials.email.toLowerCase() === 'demo@chrono.com' && 
-            credentials.password === 'Password123!') {
-          return {
-            id: 'demo-user-123',
-            email: 'demo@chrono.com',
-            name: 'Demo User',
-          }
-        }
-
         const user = await prisma.user.findUnique({
           where: {
             email: credentials.email.toLowerCase()
