@@ -22,17 +22,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-      />
+      {/* Sidebar - Hidden on mobile unless opened, visible on large screens */}
+      <div className="hidden lg:block">
+        <Sidebar 
+          isOpen={true} 
+          onClose={() => setSidebarOpen(false)} 
+        />
+      </div>
+      
+      {/* Mobile Sidebar */}
+      <div className="lg:hidden">
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+        />
+      </div>
 
       {/* Main content area */}
       <div className="lg:ml-64">
         {/* Top navigation */}
         <TopNav 
           onMenuClick={() => setSidebarOpen(true)}
+          isSidebarOpen={sidebarOpen}
           user={mockUser}
         />
 

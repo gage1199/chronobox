@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 
 interface TopNavProps {
   onMenuClick: () => void;
+  isSidebarOpen?: boolean;
   user?: {
     name: string;
     email: string;
@@ -12,7 +13,8 @@ interface TopNavProps {
 }
 
 const TopNav: React.FC<TopNavProps> = ({ 
-  onMenuClick, 
+  onMenuClick,
+  isSidebarOpen = false,
   user = { name: 'John Doe', email: 'john@example.com', initials: 'JD' }
 }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -36,8 +38,9 @@ const TopNav: React.FC<TopNavProps> = ({
           variant="ghost"
           size="sm"
           onClick={onMenuClick}
-          className="lg:hidden p-2"
+          className="lg:hidden p-2 min-h-12 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           aria-label="Open navigation menu"
+          aria-expanded={isSidebarOpen}
         >
           <Menu className="w-6 h-6" />
         </Button>
