@@ -1,9 +1,10 @@
 [build]
-  publish = "/"
+  publish = ".next"
+  command = "npm run build"
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/index"
   status = 200
 
 [[headers]]

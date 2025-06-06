@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReleaseType {
+  VISIBLE_IMMEDIATELY
+  HOLD_UNTIL_DEATH
+  HOLD_FOR_DAYS_AFTER_CREATION
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Profile Setup Fields
+  dateOfBirth   DateTime?
+  avatarUrl     String?
+  timeZone      String?
+  willStatement String?  @db.Text
+  defaultRelease ReleaseType @default(VISIBLE_IMMEDIATELY)
+  defaultReleaseAfterDays Int? // Used when defaultRelease is HOLD_FOR_DAYS_AFTER_CREATION
+  twoFactor     Boolean   @default(false)
+  phoneNumber   String?
+  notifications Json?     // JSON object for notification preferences
+
+  // Relationships
+  videos     Video[]
+  sharedWith Video[] @relation("VideoShares")
+  timelineEvents TimelineEvent[]
+  recipients Recipient[]
+
+  // Trusted Contacts (many-to-many self-reference)
+  trustedContacts UserTrust[] @relation("UserTrustedBy")
+  trustedBy       UserTrust[] @relation("UserTrusting")
+
+  // Stripe Integration
+  stripeCustomerId String? @unique
+  subscriptions    Subscription[]
+  payments         Payment[]
+
+  @@map("users")
+}
+
+model UserTrust {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  role        String?  // 'Executor', 'Family', 'Friend', 'Attorney'
+  
+  // User who is trusting
+  trustingUserId String
+  trustingUser   User   @relation("UserTrusting", fields: [trustingUserId], references: [id], onDelete: Cascade)
+  
+  // User who is trusted
+  trustedUserId  String
+  trustedUser    User   @relation("UserTrustedBy", fields: [trustedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([trustingUserId, trustedUserId])
+  @@map("user_trust")
+}
+
+model Video {
+  id          String   @id @default(cuid())
+  fileName    String
+  filePath    String
+  contentType String
+  size        Int
+  duration    Float?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Advanced Features
+  releaseAt   DateTime?
+  isPublic    Boolean   @default(false)
+  
+  // Encryption
+  isEncrypted Boolean   @default(false)
+  kmsKeyId    String?
+  
+  // Relationships
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedWith  User[]    @relation("VideoShares")
+  shareLinks  ShareLink[]
+  timelineEvents TimelineEvent[]
+
+  @@map("videos")
+}
+
+model ShareLink {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  // Link metadata
+  accessCount Int      @default(0)
+  lastAccessed DateTime?
+  
+  // Relationships
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("share_links")
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  type        String   // 'upload', 'share', 'release', 'view'
+  description String
+  metadata    Json?    // Store additional event data
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId     String?
+  video       Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("timeline_events")
+}
+
+model Recipient {
+  id       String @id @default(cuid())
+  name     String
+  email    String
+  phone    String?
+  relationship String? // 'family', 'friend', 'colleague', etc.
+  
+  // Relationships
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("recipients")
+}
+
+// Stripe Models for Payment Integration
+model Subscription {
+  id                 String   @id @default(cuid())
+  stripeSubscriptionId String @unique
+  stripePriceId      String
+  status             String   // 'active', 'canceled', 'past_due', etc.
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Plan details
+  planType           String   // 'basic', 'premium', 'enterprise'
+  storageLimit       Int      // in GB
+  videoLimit         Int      // max videos
+  
+  // Relationships
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  stripePaymentId   String   @unique
+  amount            Int      // Amount in cents
+  currency          String   @default("usd")
+  status            String   // 'succeeded', 'failed', 'pending'
+  description       String?
+  createdAt         DateTime @default(now())
+  
+  // Relationships
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// Storage Analytics for Cost Management
+model StorageUsage {
+  id            String   @id @default(cuid())
+  userId        String
+  totalSizeBytes BigInt   @default(0)
+  videoCount    Int      @default(0)
+  lastCalculated DateTime @default(now())
+  
+  // Monthly usage tracking
+  month         Int
+  year          Int
+  
+  @@unique([userId, month, year])
+  @@map("storage_usage")
+} 

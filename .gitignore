@@ -23,11 +23,18 @@ yarn-debug.log*
 yarn-error.log*
 *.log
 
-# Build directories
-dist/
-build/
+# Next.js build directories
+.next/
 out/
 
 # Cache directories
 .cache/
-.temp/ 
+.temp/
+
+# Next.js specific
+.next/
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts 

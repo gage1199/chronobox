@@ -1,0 +1,192 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS Aurora MySQL cluster for ChronoBox application'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: 'dev'
+    AllowedValues: ['dev', 'staging', 'prod']
+    Description: Environment name
+  
+  DatabaseName:
+    Type: String
+    Default: 'chronobox'
+    Description: Database name
+  
+  MasterUsername:
+    Type: String
+    Default: 'chronobox_admin'
+    Description: Database master username
+  
+  MasterPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    MaxLength: 41
+    Description: Database master password (8-41 characters)
+
+Resources:
+  # VPC for database security
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-vpc-${Environment}'
+
+  # Private subnets for Aurora
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-private-subnet-1-${Environment}'
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-private-subnet-2-${Environment}'
+
+  # DB Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for ChronoBox Aurora cluster
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-db-subnet-group-${Environment}'
+
+  # Security Group for Aurora
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ChronoBox Aurora cluster
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+          Description: MySQL access from application
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-aurora-sg-${Environment}'
+
+  # Security Group for Application (EC2/ECS/Lambda)
+  ApplicationSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ChronoBox application
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-app-sg-${Environment}'
+
+  # Aurora MySQL Cluster
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub 'chronobox-aurora-${Environment}'
+      Engine: aurora-mysql
+      EngineVersion: '8.0.mysql_aurora.3.07.0'
+      DatabaseName: !Ref DatabaseName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterPassword
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: '03:00-04:00'
+      PreferredMaintenanceWindow: 'sun:04:00-sun:05:00'
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      StorageEncrypted: true
+      DeletionProtection: !If [IsProd, true, false]
+      EnableCloudwatchLogsExports:
+        - error
+        - general
+        - slowquery
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-aurora-${Environment}'
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Aurora Writer Instance
+  AuroraWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub 'chronobox-aurora-writer-${Environment}'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: !If [IsProd, 'db.r6g.large', 'db.t3.medium']
+      Engine: aurora-mysql
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-aurora-writer-${Environment}'
+
+  # Aurora Reader Instance (for production)
+  AuroraReader:
+    Type: AWS::RDS::DBInstance
+    Condition: IsProd
+    Properties:
+      DBInstanceIdentifier: !Sub 'chronobox-aurora-reader-${Environment}'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: 'db.r6g.large'
+      Engine: aurora-mysql
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub 'chronobox-aurora-reader-${Environment}'
+
+  # Secrets Manager for database credentials
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'chronobox/database/${Environment}'
+      Description: 'ChronoBox database credentials'
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, 'prod']
+
+Outputs:
+  AuroraClusterEndpoint:
+    Description: Aurora cluster endpoint
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-aurora-endpoint'
+
+  AuroraClusterReadEndpoint:
+    Description: Aurora cluster read endpoint
+    Value: !GetAtt AuroraCluster.ReadEndpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-aurora-read-endpoint'
+
+  DatabaseConnectionString:
+    Description: Database connection string for ChronoBox
+    Value: !Sub 'mysql://${MasterUsername}:${MasterPassword}@${AuroraCluster.Endpoint.Address}:3306/${DatabaseName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-connection-string'
+
+  SecurityGroupId:
+    Description: Application security group ID
+    Value: !Ref ApplicationSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-app-security-group' 
