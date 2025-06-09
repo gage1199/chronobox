@@ -27,7 +27,7 @@ const DashboardPage: React.FC = () => {
   return (
     <DashboardLayout pageTitle="Welcome, John">
       {/* Quick Actions */}
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
           <Link href="/memories/new">
             <Button size="lg" className="w-full sm:w-auto px-8">
@@ -45,7 +45,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Summary Cards - Refactored to use reusable SummaryCard component */}
       <div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"
         aria-live="polite"
         aria-label="Dashboard summary statistics"
       >
@@ -83,8 +83,8 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Recent Activity */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Recent Activity
         </h2>
         
@@ -162,7 +162,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Getting Started Tips - Converted to collapsible components */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Getting Started Tips
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

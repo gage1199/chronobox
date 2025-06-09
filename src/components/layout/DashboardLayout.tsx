@@ -51,10 +51,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Top Tabs - Main navigation for Personal Legacy, Create, Family */}
         <TopTabs />
 
-        {/* Page content - Removed excessive py-6 spacing */}
-        <main className="px-4 py-4 sm:px-6 lg:px-8">
+        {/* Page content - REMOVED ALL EXCESSIVE SPACING */}
+        <main className="px-4 py-2 sm:px-6 lg:px-8">
           {pageTitle && (
-            <div className="mb-4">
+            <div className="mb-2">
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {pageTitle}
               </h1>
