@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopNav from './TopNav';
+import TopTabs from '../TopTabs';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -47,10 +48,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           user={mockUser}
         />
 
-        {/* Page content */}
-        <main className="px-4 py-6 sm:px-6 lg:px-8">
+        {/* Top Tabs - Main navigation for Personal Legacy, Create, Family */}
+        <TopTabs />
+
+        {/* Page content - Removed excessive py-6 spacing */}
+        <main className="px-4 py-4 sm:px-6 lg:px-8">
           {pageTitle && (
-            <div className="mb-6">
+            <div className="mb-4">
               <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {pageTitle}
               </h1>

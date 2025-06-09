@@ -147,27 +147,8 @@ export default function DashboardSidebar({
         </div>
       </div>
 
-      {/* Quick Record Button - Bellagio inspired luxury CTA */}
+      {/* Setup Button - removed Create Memory button as it's now in top tabs */}
       <div className="px-6 py-6 space-y-3">
-        <button
-          onClick={onQuickRecord}
-          className={`
-            w-full bg-gradient-to-r from-amber-500 to-amber-600 
-            hover:from-amber-600 hover:to-amber-700
-            ${theme === 'light' ? 'text-white' : 'text-slate-900'}
-            font-semibold py-4 px-6 rounded-xl
-            shadow-lg hover:shadow-xl transform hover:scale-105
-            transition-all duration-200 ease-out
-            border border-amber-400/50
-            ${isCollapsed ? 'px-3' : 'px-6'}
-          `}
-        >
-          <div className="flex items-center justify-center space-x-2">
-            <span className="text-xl">✨</span>
-            {!isCollapsed && <span>Create Memory</span>}
-          </div>
-        </button>
-
         {/* Complete Setup Button */}
         <Link href="/profile/setup">
           <button
